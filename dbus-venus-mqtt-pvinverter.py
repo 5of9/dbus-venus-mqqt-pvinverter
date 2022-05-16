@@ -51,6 +51,7 @@ class DbusVenusMQTTService:
     self._dbusservice.add_path('/Serial', "166314T") # self._getShellySerial()
     self._dbusservice.add_path('/UpdateIndex', 0)
     self._dbusservice.add_path('/StatusCode', 0)  # Dummy path so VRM detects us as a PV-inverter.
+    self._dbusservice.add_path('/Ac/MaxPower', config['DEFAULT']['MaxPower']);
     
     # add path values to dbus
     for path, settings in self._paths.items():
