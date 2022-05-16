@@ -20,8 +20,8 @@ sys.path.insert(1, os.path.join(os.path.dirname(__file__), '/opt/victronenergy/d
 from vedbus import VeDbusService
 
 
-class DbusShelly1pmService:
-  def __init__(self, servicename, paths, productname='Shelly 1PM', connection='Shelly 1PM HTTP JSON service'):
+class DbusShellyService:
+  def __init__(self, servicename, paths, productname='Shelly Plus 1PM', connection='Shelly Plus 1PM HTTP JSON service'):
     config = self._getConfig()
     deviceinstance = int(config['DEFAULT']['Deviceinstance'])
     customname = config['DEFAULT']['CustomName']
@@ -30,6 +30,8 @@ class DbusShelly1pmService:
     self._paths = paths
     
     logging.debug("%s /DeviceInstance = %d" % (servicename, deviceinstance))
+
+    self.meter_system_data = self._getShellySystemGetDeviceInfoData()
     
     # Create the management objects, as specified in the ccgx dbus-api document
     self._dbusservice.add_path('/Mgmt/ProcessName', __file__)
@@ -45,8 +47,8 @@ class DbusShelly1pmService:
     self._dbusservice.add_path('/Connected', 1)
     
     self._dbusservice.add_path('/Latency', None)    
-    self._dbusservice.add_path('/FirmwareVersion', 0.1)
-    self._dbusservice.add_path('/HardwareVersion', 0)
+    self._dbusservice.add_path('/FirmwareVersion', self._getShellyFirmwareVersion())
+    self._dbusservice.add_path('/HardwareVersion',  self._getShellyHardwareVersion())
     self._dbusservice.add_path('/Position', 0) # normaly only needed for pvinverter
     self._dbusservice.add_path('/Serial', self._getShellySerial())
     self._dbusservice.add_path('/UpdateIndex', 0)
@@ -66,14 +68,23 @@ class DbusShelly1pmService:
     # add _signOfLife 'timer' to get feedback in log every 5minutes
     gobject.timeout_add(self._getSignOfLifeInterval()*60*1000, self._signOfLife)
  
-  def _getShellySerial(self):
-    meter_system_data = self._getShellySystemData()  
+  def _getShellyFirmwareVersion(self):
+    if not self.meter_system_data['fw_id']:
+        raise ValueError("Response does not contain 'fw_id' attribute")
     
-    if not meter_system_data['mac']:
+    return self.meter_system_data['fw_id']
+ 
+  def _getShellyHardwareVersion(self):
+    if not self.meter_system_data['model']:
+        raise ValueError("Response does not contain 'model' attribute")
+    
+    return self.meter_system_data['model']
+
+  def _getShellySerial(self):
+    if not self.meter_system_data['mac']:
         raise ValueError("Response does not contain 'mac' attribute")
     
-    serial = meter_system_data['mac']
-    return serial
+    return self.meter_system_data['mac']
  
  
   def _getConfig(self):
@@ -97,7 +108,7 @@ class DbusShelly1pmService:
     accessType = config['DEFAULT']['AccessType']
     
     if accessType == 'OnPremise': 
-        URL = "http://%s:%s@%s/rpc/Sys.GetStatus" % (config['ONPREMISE']['Username'], config['ONPREMISE']['Password'], config['ONPREMISE']['Host'])
+        URL = "http://%s:%s@%s/rpc/Shelly.GetDeviceInfo" % (config['ONPREMISE']['Username'], config['ONPREMISE']['Password'], config['ONPREMISE']['Host'])
         URL = URL.replace(":@", "")
     else:
         raise ValueError("AccessType %s is not supported" % (config['DEFAULT']['AccessType']))
@@ -117,7 +128,7 @@ class DbusShelly1pmService:
     return URL
     
  
-  def _getShellySystemData(self):
+  def _getShellySystemGetDeviceInfoData(self):
     URL = self._getShellyStatusUrl()
     meter_r = requests.get(url = URL)
     
@@ -129,8 +140,7 @@ class DbusShelly1pmService:
     
     # check for Json
     if not meter_system_data:
-        raise ValueError("Converting response to JSON failed")
-    
+        raise ValueError("Converting response to JSON failed")    
     
     return meter_system_data
   
@@ -146,8 +156,7 @@ class DbusShelly1pmService:
     
     # check for Json
     if not meter_switch_data:
-        raise ValueError("Converting response to JSON failed")
-    
+        raise ValueError("Converting response to JSON failed")    
     
     return meter_switch_data
  
@@ -243,7 +252,7 @@ def main():
       _v = lambda p, v: (str(round(v, 1)) + 'V')   
      
       #start our main-service
-      pvac_output = DbusShelly1pmService(
+      pvac_output = DbusShellyService(
         servicename='com.victronenergy.pvinverter',
         paths={
           '/Ac/Energy/Forward': {'initial': None, 'textformat': _kwh}, # energy produced by pv inverter
