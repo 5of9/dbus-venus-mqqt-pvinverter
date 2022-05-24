@@ -193,14 +193,15 @@ class DbusShellyService:
            self._dbusservice[pre + '/Current'] = current
            self._dbusservice[pre + '/Power'] = power
            if power > 0:
-             self._dbusservice[pre + '/Energy/Forward'] = total/1000/60 
-           
+             self._dbusservice[pre + '/Energy/Forward'] = total/1000
          else:
            self._dbusservice[pre + '/Voltage'] = ''
            self._dbusservice[pre + '/Current'] = ''
            self._dbusservice[pre + '/Power'] = ''
-           self._dbusservice[pre + '/Energy/Forward'] = ''
+           self._dbusservice[pre + '/Energy/Forward'] = 0
            
+
+       self._dbusservice['/Ac/Current'] = self._dbusservice['/Ac/' + pvinverter_phase + '/Current']    
        self._dbusservice['/Ac/Power'] = self._dbusservice['/Ac/' + pvinverter_phase + '/Power']
        self._dbusservice['/Ac/Energy/Forward'] = self._dbusservice['/Ac/' + pvinverter_phase + '/Energy/Forward']
        
