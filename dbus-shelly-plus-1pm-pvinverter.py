@@ -45,6 +45,7 @@ class DbusShellyService:
     self._dbusservice.add_path('/ProductName', productname)
     self._dbusservice.add_path('/CustomName', customname)    
     self._dbusservice.add_path('/Connected', 1)
+    self._dbusservice.add_path('/NumberOfPhases', 1)
     
     self._dbusservice.add_path('/Latency', None)    
     self._dbusservice.add_path('/FirmwareVersion', self._getShellyFirmwareVersion())
@@ -195,10 +196,10 @@ class DbusShellyService:
              self._dbusservice[pre + '/Energy/Forward'] = total/1000/60 
            
          else:
-           self._dbusservice[pre + '/Voltage'] = 0
-           self._dbusservice[pre + '/Current'] = 0
-           self._dbusservice[pre + '/Power'] = 0
-           self._dbusservice[pre + '/Energy/Forward'] = 0
+           self._dbusservice[pre + '/Voltage'] = ''
+           self._dbusservice[pre + '/Current'] = ''
+           self._dbusservice[pre + '/Power'] = ''
+           self._dbusservice[pre + '/Energy/Forward'] = ''
            
        self._dbusservice['/Ac/Power'] = self._dbusservice['/Ac/' + pvinverter_phase + '/Power']
        self._dbusservice['/Ac/Energy/Forward'] = self._dbusservice['/Ac/' + pvinverter_phase + '/Energy/Forward']
@@ -262,14 +263,14 @@ def main():
           '/Ac/Voltage': {'initial': 0, 'textformat': _v},
           
           '/Ac/L1/Voltage': {'initial': 0, 'textformat': _v},
-          '/Ac/L2/Voltage': {'initial': 0, 'textformat': _v},
-          '/Ac/L3/Voltage': {'initial': 0, 'textformat': _v},
+          '/Ac/L2/Voltage': {'initial': '', 'textformat': _v},
+          '/Ac/L3/Voltage': {'initial': '', 'textformat': _v},
           '/Ac/L1/Current': {'initial': 0, 'textformat': _a},
-          '/Ac/L2/Current': {'initial': 0, 'textformat': _a},
-          '/Ac/L3/Current': {'initial': 0, 'textformat': _a},
+          '/Ac/L2/Current': {'initial': '', 'textformat': _a},
+          '/Ac/L3/Current': {'initial': '', 'textformat': _a},
           '/Ac/L1/Power': {'initial': 0, 'textformat': _w},
-          '/Ac/L2/Power': {'initial': 0, 'textformat': _w},
-          '/Ac/L3/Power': {'initial': 0, 'textformat': _w},
+          '/Ac/L2/Power': {'initial': '', 'textformat': _w},
+          '/Ac/L3/Power': {'initial': '', 'textformat': _w},
           '/Ac/L1/Energy/Forward': {'initial': None, 'textformat': _kwh},
           '/Ac/L2/Energy/Forward': {'initial': None, 'textformat': _kwh},
           '/Ac/L3/Energy/Forward': {'initial': None, 'textformat': _kwh},
